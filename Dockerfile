@@ -8,7 +8,7 @@ USER root
 # Devtools7
 RUN yum -y install centos-release-scl \
     && yum-config-manager --enable rhel-server-rhscl-7-rpms \
-    && yum install devtoolset-7 \
+    && yum -y install devtoolset-7 \
     && yum clean all \
     && rm -rf /var/cache/yum
 
