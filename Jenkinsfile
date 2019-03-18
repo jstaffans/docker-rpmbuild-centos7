@@ -3,7 +3,9 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
     disableConcurrentBuilds()
   }
-  agent any
+  agent {
+    label 'docker-amd64'
+  }
   environment {
     IMAGE      = "rpmbuild-centos7"
     TAG        = "golang"
