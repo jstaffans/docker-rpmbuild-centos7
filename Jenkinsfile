@@ -4,33 +4,37 @@ pipeline {
     disableConcurrentBuilds()
   }
   agent {
-    label 'rpm'
+    label 'docker-amd64'
   }
   environment {
-    IMAGE_NAME      = "rpmbuild"
-    TEMP_IMAGE_NAME = "rpmbuild7_${BUILD_NUMBER}"
-    TAG_NAME        = "el7-fpm"
+    IMAGE      = "rpmbuild-centos7"
+    TAG        = "fpm"
+    TEMP_IMAGE = "rpmbuild7_${TAG}_${BUILD_NUMBER}"
   }
   stages {
     stage('Build') {
       steps {
         ansiColor('xterm') {
-          sh 'FINAL_IMAGE_NAME="${DOCKER_PRIVATE_REGISTRY}/${IMAGE_NAME}:${TAG_NAME}"'
-          sh 'docker build --pull --no-cache --squash --compress -t ${TEMP_IMAGE_NAME} .'
+          sh 'docker build --pull --no-cache --squash --compress -t ${TEMP_IMAGE} .'
         }
       }
     }
     stage('Publish') {
       steps {
         ansiColor('xterm') {
-          sh 'docker tag ${TEMP_IMAGE_NAME} ${DOCKER_PRIVATE_REGISTRY}/${IMAGE_NAME}:${TAG_NAME}'
-          sh 'docker push ${DOCKER_PRIVATE_REGISTRY}/${IMAGE_NAME}:${TAG_NAME}'
+          // Dockerhub
+          sh 'docker tag ${TEMP_IMAGE} docker.io/jc21/${IMAGE}:${TAG}'
+          withCredentials([usernamePassword(credentialsId: 'jc21-dockerhub', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
+            sh "docker login -u '${duser}' -p '${dpass}'"
+            sh 'docker push docker.io/jc21/${IMAGE}:${TAG}'
+            sh 'docker rmi docker.io/jc21/${IMAGE}:${TAG}'
+          }
         }
       }
     }
   }
   triggers {
-    bitbucketPush()
+    githubPush()
   }
   post {
     success {
@@ -42,7 +46,7 @@ pipeline {
       sh 'figlet "FAILURE"'
     }
     always {
-      sh 'docker rmi  $TEMP_IMAGE_NAME'
+      sh 'docker rmi  ${TEMP_IMAGE}'
     }
   }
 }
