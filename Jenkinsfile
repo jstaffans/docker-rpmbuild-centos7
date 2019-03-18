@@ -6,8 +6,8 @@ pipeline {
   agent any
   environment {
     IMAGE      = "rpmbuild-centos7"
-    TEMP_IMAGE = "rpmbuild7_${BUILD_NUMBER}"
     TAG        = "golang"
+    TEMP_IMAGE = "rpmbuild7_${TAG}_${BUILD_NUMBER}"
   }
   stages {
     stage('Build') {
@@ -20,7 +20,6 @@ pipeline {
     stage('Publish') {
       steps {
         ansiColor('xterm') {
-
           // Dockerhub
           sh 'docker tag ${TEMP_IMAGE} docker.io/jc21/${IMAGE}:${TAG}'
           withCredentials([usernamePassword(credentialsId: 'jc21-dockerhub', passwordVariable: 'dpass', usernameVariable: 'duser')]) {
@@ -31,6 +30,9 @@ pipeline {
         }
       }
     }
+  }
+  triggers {
+    githubPush()
   }
   post {
     success {
