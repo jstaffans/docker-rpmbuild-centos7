@@ -9,7 +9,7 @@ pipeline {
   environment {
     IMAGE_NAME      = "rpmbuild"
     TEMP_IMAGE_NAME = "rpmbuild7_${BUILD_NUMBER}"
-    TAG_NAME        = "el7"
+    TAG_NAME        = "el7-fpm"
   }
   stages {
     stage('Build') {
@@ -34,9 +34,6 @@ pipeline {
   }
   post {
     success {
-      build job: 'Docker/docker-rpmbuild-centos7/devtools7', wait: false
-      build job: 'Docker/docker-rpmbuild-centos7/golang', wait: false
-      build job: 'Docker/docker-rpmbuild-centos7/rust', wait: false
       juxtapose event: 'success'
       sh 'figlet "SUCCESS"'
     }
