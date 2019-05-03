@@ -1,8 +1,5 @@
 FROM centos:7
 
-MAINTAINER Jamie Curnow <jc@jc21.com>
-LABEL maintainer="Jamie Curnow <jc@jc21.com>"
-
 # Disable the mirrorlist because god damn are they useless.
 RUN sed -i 's/^mirrorlist=/#mirrorlist=/' /etc/yum.repos.d/CentOS-Base.repo \
     && sed -i 's/^#baseurl=/baseurl=/' /etc/yum.repos.d/CentOS-Base.repo
@@ -19,6 +16,7 @@ RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.
       libmcrypt-devel libmemcached-devel libpng-devel libtidy-devel libtiff-devel libtool-ltdl-devel libwebp-devel libX11-devel libXpm-devel libxml2-devel \
       libxslt-devel memcached net-snmp-devel openldap-devel openssl-devel pam-devel pcre-devel perl-generators postgresql-devel recode-devel sqlite-devel \
       ssmtp systemd-devel systemtap-sdt-devel tokyocabinet-devel unixODBC-devel zlib-devel \
+    && yum -y install rh-python36-python-devel rh-python36-python-setuptools rh-python36-python-pip \
     && yum clean all \
     && rm -rf /var/cache/yum
 
@@ -42,7 +40,9 @@ RUN adduser -G wheel rpmbuilder \
     && chmod -R 777 /home/rpmbuilder/rpmbuild
 
 ADD .rpmmacros /home/rpmbuilder/
-USER rpmbuilder
+
+USER root
 
 WORKDIR /home/rpmbuilder
 
+CMD ["scl", "enable", "rh-python36", "bash"]
